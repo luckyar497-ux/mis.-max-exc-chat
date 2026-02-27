@@ -42,6 +42,7 @@ sleep 3
 PUBLIC_URL="$(grep -Eo 'https://[a-zA-Z0-9.-]+\.trycloudflare\.com' "$RUNTIME_DIR/cloudflared.log" | head -n 1 || true)"
 
 if [[ -n "$PUBLIC_URL" ]]; then
+  echo "$PUBLIC_URL" > "$RUNTIME_DIR/public_url.txt"
   echo "Web publik aktif: $PUBLIC_URL"
 else
   echo "Tunnel berjalan, tapi URL belum terbaca. Cek log: $RUNTIME_DIR/cloudflared.log"
