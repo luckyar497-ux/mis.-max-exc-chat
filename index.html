@@ -1,0 +1,2840 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>💬 MAX EXC - Real-time Messaging</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #2aabee;
+      --primary-dark: #229ed9;
+      --secondary: #4fb6f0;
+      --bg-dark: #0f1620;
+      --bg-darker: #0b1119;
+      --surface: #182533;
+      --surface-light: #223246;
+      --text-primary: #e9f1fb;
+      --text-secondary: #9eb2c8;
+      --border: #2e4157;
+      --success: #10b981;
+      --warning: #f59e0b;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: var(--bg-darker);
+      color: var(--text-primary);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* LOGIN SCREEN */
+    .login-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: linear-gradient(180deg, #0b1119 0%, #121d2a 100%);
+    }
+
+    .login-box {
+      background: var(--surface);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      max-width: 420px;
+      width: 90%;
+      border: 1px solid var(--border);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .login-header p {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: var(--text-primary);
+      font-size: 14px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 16px;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      margin-top: 10px;
+      box-shadow: 0 10px 24px rgba(42, 171, 238, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 30px rgba(42, 171, 238, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      filter: saturate(1.08);
+    }
+
+    .btn-login:active {
+      transform: translateY(0) scale(0.99);
+    }
+
+    .btn-login:focus-visible,
+    .logout-btn:focus-visible,
+    .icon-btn:focus-visible,
+    .send-btn:focus-visible,
+    .settings-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(42, 171, 238, 0.35);
+    }
+
+    /* CHAT SCREEN */
+    .chat-container {
+      display: none;
+      height: 100vh;
+      flex-direction: row;
+      background: linear-gradient(180deg, #0f1723 0%, #111d2a 100%);
+    }
+
+    .chat-container.active {
+      display: flex;
+    }
+
+    /* SIDEBAR - Users List */
+    .sidebar {
+      width: 300px;
+      background: rgba(18, 30, 43, 0.9);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      backdrop-filter: blur(8px);
+      border-radius: 0 20px 20px 0;
+    }
+
+    .sidebar-header {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .user-count {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .online-indicator {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .users-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .user-item {
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      background: transparent;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-left: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .user-item.active {
+      background: var(--surface-light);
+      outline: 1px solid var(--border);
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .user-name {
+      font-weight: 600;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-status {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* MAIN CHAT AREA */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      background: rgba(24, 37, 51, 0.92);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(6px);
+      border-radius: 18px 18px 0 0;
+    }
+
+    .chat-header-title {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .group-voice-members {
+      padding: 8px 20px;
+      background: var(--bg-dark);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      border-radius: 0 0 14px 14px;
+    }
+
+    .group-voice-chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .group-voice-chip-state {
+      font-size: 10px;
+      margin-left: 6px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .group-voice-chip-state.connected {
+      color: var(--success);
+    }
+
+    .group-voice-chip-state.connecting,
+    .group-voice-chip-state.new {
+      color: var(--warning);
+    }
+
+    .logout-btn {
+      padding: 8px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 999px;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .logout-btn:hover {
+      background: rgba(42, 171, 238, 0.16);
+      border-color: rgba(42, 171, 238, 0.5);
+      color: #dff4ff;
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(6, 16, 30, 0.35);
+    }
+
+    .logout-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    /* MESSAGES AREA */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .message {
+      display: flex;
+      margin-bottom: 8px;
+      animation: slideIn 0.3s ease;
+      align-items: flex-end;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .message-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 13px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .message-content {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-width: min(72%, 560px);
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .message-username {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .message-text {
+      background: #1e2e41;
+      padding: 9px 12px;
+      border-radius: 18px 18px 18px 8px;
+      word-wrap: break-word;
+      line-height: 1.5;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .message-file {
+      background: #1e2e41;
+      padding: 8px 10px;
+      border-radius: 18px 18px 18px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .message.own {
+      justify-content: flex-end;
+    }
+
+    .message.own .message-avatar {
+      display: none;
+    }
+
+    .message.own .message-header {
+      justify-content: flex-end;
+    }
+
+    .message.own .message-text,
+    .message.own .message-file {
+      background: linear-gradient(135deg, #2aabee, #229ed9);
+      color: #fff;
+      border-radius: 18px 18px 8px 18px;
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .message audio {
+      width: 280px;
+      max-width: 100%;
+      border-radius: 10px;
+      background: #152536;
+    }
+
+    .file-icon {
+      font-size: 20px;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 14px;
+      background: var(--surface);
+      border-radius: 12px;
+      width: fit-content;
+    }
+
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--text-secondary);
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        opacity: 0.5;
+        transform: translateY(0);
+      }
+      30% {
+        opacity: 1;
+        transform: translateY(-10px);
+      }
+    }
+
+    /* INPUT AREA */
+    .input-area {
+      padding: 12px 14px;
+      background: rgba(24, 37, 51, 0.95);
+      border-top: 1px solid var(--border);
+      backdrop-filter: blur(6px);
+    }
+
+    .input-wrapper {
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .message-input-group {
+      flex: 1;
+      display: flex;
+      gap: 8px;
+    }
+
+    .message-input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: #132130;
+      color: var(--text-primary);
+      font-size: 14px;
+      resize: none;
+      max-height: 100px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .message-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(42, 171, 238, 0.18);
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--border);
+      background: linear-gradient(180deg, #162637 0%, #132130 100%);
+      border-radius: 50%;
+      color: var(--text-primary);
+      cursor: pointer;
+      font-size: 18px;
+      transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 16px rgba(8, 20, 35, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .icon-btn:hover {
+      background: linear-gradient(180deg, #1a3046 0%, #15283b 100%);
+      border-color: var(--primary);
+      color: #dff4ff;
+      transform: translateY(-1px);
+    }
+
+    .icon-btn:active {
+      transform: translateY(0) scale(0.96);
+    }
+
+    .send-btn {
+      width: 44px;
+      height: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: 50%;
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      box-shadow: 0 12px 24px rgba(42, 171, 238, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+
+    .send-btn:hover {
+      transform: translateY(-1px) scale(1.03);
+      box-shadow: 0 14px 28px rgba(42, 171, 238, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      filter: saturate(1.08);
+    }
+
+    .send-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* EMOJI PICKER */
+    .emoji-picker-container {
+      position: absolute;
+      bottom: 100px;
+      right: 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      padding: 10px;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-height: 300px;
+      overflow-y: auto;
+      width: 300px;
+    }
+
+    .emoji-picker-container.active {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 5px;
+    }
+
+    .emoji-item {
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 20px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .emoji-item:hover {
+      background: var(--bg-dark);
+      transform: scale(1.2);
+    }
+
+    /* FILE INPUT */
+    #fileInput {
+      display: none;
+    }
+
+    /* SCROLLBAR */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--surface-light);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 0;
+        overflow: hidden;
+      }
+
+      .chat-container.active {
+        flex-direction: column;
+      }
+
+      .message-text {
+        max-width: 300px;
+      }
+    }
+
+    /* UTILITY */
+    .hidden {
+      display: none;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .mt-20 {
+      margin-top: 20px;
+    }
+
+    .settings-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+
+    .settings-modal.active {
+      display: flex;
+    }
+
+    .settings-card {
+      width: 90%;
+      max-width: 360px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 16px;
+    }
+
+    .settings-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .settings-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .settings-btn {
+      width: 100%;
+      padding: 11px 12px;
+      background: linear-gradient(180deg, #152435 0%, #122030 100%);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      text-align: left;
+      font-weight: 600;
+      transition: transform 0.18s ease, background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 6px 14px rgba(6, 15, 25, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .settings-btn:hover {
+      background: linear-gradient(180deg, #1a2f44 0%, #16283b 100%);
+      border-color: rgba(42, 171, 238, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .settings-btn:active {
+      transform: scale(0.99);
+    }
+
+    .view-switch {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+      margin-right: 8px;
+    }
+
+    .social-panel {
+      border-bottom: 1px solid var(--border);
+      background: rgba(16, 26, 38, 0.8);
+      padding: 10px 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .social-tabs {
+      display: flex;
+      gap: 8px;
+    }
+
+    .social-tab {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-dark);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .social-tab.active {
+      background: rgba(42, 171, 238, 0.18);
+      color: var(--text-primary);
+      border-color: rgba(42, 171, 238, 0.55);
+    }
+
+    .social-content {
+      display: none;
+      gap: 10px;
+    }
+
+    .social-content.active {
+      display: grid;
+    }
+
+    .status-compose,
+    .reel-compose {
+      display: grid;
+      gap: 8px;
+    }
+
+    .status-input,
+    .reel-caption-input,
+    #reelVideoInput {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #132130;
+      color: var(--text-primary);
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 13px;
+    }
+
+    .status-input:focus,
+    .reel-caption-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(42, 171, 238, 0.18);
+    }
+
+    .status-list,
+    .reels-list {
+      display: grid;
+      gap: 8px;
+      max-height: 210px;
+      overflow-y: auto;
+    }
+
+    .status-item,
+    .reel-item {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 14px;
+      padding: 10px;
+    }
+
+    .status-meta,
+    .reel-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .status-text,
+    .reel-caption {
+      font-size: 13px;
+      color: var(--text-primary);
+      line-height: 1.4;
+      word-break: break-word;
+    }
+
+    .status-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .reel-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .status-delete-btn {
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      background: rgba(239, 68, 68, 0.14);
+      color: #fecaca;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .status-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .reel-delete-btn {
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      background: rgba(239, 68, 68, 0.14);
+      color: #fecaca;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .reel-delete-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .reel-video {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      background: var(--bg-dark);
+      max-height: min(70vh, 520px);
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .reel-video.portrait {
+      width: auto;
+      max-width: min(100%, 320px);
+      max-height: min(70vh, 560px);
+    }
+
+    .reel-video.landscape {
+      width: 100%;
+      max-height: 420px;
+    }
+
+    .reel-fullscreen {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 4000;
+      padding: 16px;
+    }
+
+    .reel-fullscreen.active {
+      display: flex;
+    }
+
+    .reel-fullscreen-video {
+      width: auto;
+      max-width: 96vw;
+      max-height: 92vh;
+      border-radius: 12px;
+      background: #000;
+    }
+
+    .reel-fullscreen-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-radius: 999px;
+      width: 38px;
+      height: 38px;
+      cursor: pointer;
+      font-size: 18px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <!-- LOGIN SCREEN -->
+  <div class="login-container" id="loginScreen">
+    <div class="login-box">
+      <div class="login-header">
+        <h1>💬 MAX EXC</h1>
+        <p>Join the conversation in real-time</p>
+      </div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Nama Pengguna</label>
+          <input 
+            type="text" 
+            id="username" 
+            placeholder="Masukkan nama Anda" 
+            required
+            autocomplete="off"
+          >
+        </div>
+        <div class="form-group">
+          <label for="profilePic">Foto Profil (opsional)</label>
+          <input
+            type="file"
+            id="profilePic"
+            accept="image/*"
+          >
+        </div>
+        <button type="submit" class="btn-login">Masuk ke Chat 🚀</button>
+      </form>
+      <div class="text-center mt-20">
+        <p style="font-size: 12px; color: var(--text-secondary);">
+          💡 Tip: Buka browser window lain untuk test chat dengan pengguna berbeda!
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHAT SCREEN -->
+  <div class="chat-container" id="chatScreen">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title">Pengguna Online</div>
+        <div class="user-count">
+          <span class="online-indicator"></span>
+          <span id="onlineCount">0</span> online
+        </div>
+      </div>
+      <div class="users-list" id="usersList"></div>
+    </div>
+
+    <!-- Main Chat -->
+    <div class="chat-main">
+      <div class="chat-header">
+        <div class="chat-header-title" id="chatHeaderTitle" style="cursor:pointer;">💬 Pilih chat dulu</div>
+        <div class="view-switch">
+          <button class="logout-btn" id="chatViewBtn" type="button">Chat</button>
+          <button class="logout-btn" id="socialViewBtn" type="button">Status & Reels</button>
+        </div>
+        <button class="logout-btn" id="groupVoiceBtn">🎧 Live Grup</button>
+        <button class="logout-btn" id="settingsBtn">Pengaturan</button>
+        <button class="logout-btn" id="callBtn">☎️ Panggil</button>
+      </div>
+
+      <div class="group-voice-members" id="groupVoiceMembersBar">
+        <span>🎧 Live Grup:</span>
+        <span id="groupVoiceMembersText">Belum ada yang join</span>
+      </div>
+
+      <div class="social-panel">
+        <div class="social-tabs">
+          <button class="social-tab active" id="statusTabBtn" type="button">🟢 Status</button>
+          <button class="social-tab" id="reelsTabBtn" type="button">🎬 Reels</button>
+        </div>
+
+        <div class="social-content active" id="statusPanel">
+          <div class="status-compose">
+            <textarea id="statusInput" class="status-input" rows="2" placeholder="Tulis status kamu..."></textarea>
+            <button class="logout-btn" id="postStatusBtn" type="button">Post Status</button>
+          </div>
+          <div class="status-list" id="statusList"></div>
+        </div>
+
+        <div class="social-content" id="reelsPanel">
+          <div class="reel-compose">
+            <input id="reelVideoInput" type="file" accept="video/*">
+            <input id="reelCaptionInput" class="reel-caption-input" type="text" maxlength="120" placeholder="Caption reels (opsional)">
+            <button class="logout-btn" id="postReelBtn" type="button">Upload Reel</button>
+          </div>
+          <div class="reels-list" id="reelsList"></div>
+        </div>
+      </div>
+
+      <div class="messages-area" id="messagesArea"></div>
+
+      <div class="input-area">
+        <div class="input-wrapper">
+          <div class="message-input-group">
+            <button class="icon-btn" id="emojiBtn" title="Emoji">☻</button>
+            <button class="icon-btn" id="fileBtn" title="Upload File">🖼️</button>
+            <button class="icon-btn" id="recordBtn" title="Voice Message">🎤</button>
+            <textarea 
+              class="message-input" 
+              id="messageInput" 
+              placeholder="Tulis pesan Anda di sini..."
+              rows="1"
+            ></textarea>
+            <input type="file" id="fileInput" accept="image/*,application/pdf,.doc,.docx,.txt">
+            <input type="file" id="editProfilePicInput" accept="image/*" style="display:none;">
+          </div>
+          <button class="send-btn" id="sendBtn">⌯⌲</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Emoji Picker -->
+    <div class="emoji-picker-container" id="emojiPicker"></div>
+  </div>
+
+  <div class="settings-modal" id="settingsModal">
+    <div class="settings-card">
+      <div class="settings-title">Pengaturan</div>
+      <div class="settings-actions">
+        <button class="settings-btn" id="changeNameBtn">Ganti Nama</button>
+        <button class="settings-btn" id="changePhotoBtn">Ganti Foto Profil</button>
+        <button class="settings-btn" id="logoutFromSettingsBtn">Keluar</button>
+        <button class="settings-btn" id="closeSettingsBtn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="reel-fullscreen" id="reelFullscreenModal">
+    <button class="reel-fullscreen-close" id="closeReelFullscreenBtn" type="button">×</button>
+    <video class="reel-fullscreen-video" id="reelFullscreenVideo" controls playsinline></video>
+  </div>
+
+  <audio id="remoteAudio" autoplay style="display:none;"></audio>
+  <script>
+    // =================== STATE & CONFIG =================
+    const state = {
+      userId: null,
+      username: null,
+      profilePic: null,
+      ws: null,
+      users: [],
+      messages: [],
+      statuses: [],
+      reels: [],
+      typingTimeout: null,
+      chatMode: 'group', // 'group' | 'private'
+      currentTarget: null // userId untuk mode private
+    };
+
+    const emojis = ['😀', '😂', '😍', '🥰', '😎', '🤔', '😢', '😡', '🎉', '🔥', '💯', '👍', '❤️', '💔', '😴', '🤐', '👋', '🙏', '💪', '🎈', '🎊', '🌟', '✨', '🌈', '🚀', '⭐', '💎', '🏆', '🎯', '📱', '💻', '⚡', '🌍', '🌸', '🍕'];
+    let mediaRecorder;
+    let recordedChunks = [];
+    let localStream;
+    let pc;
+
+    // =================== DOM ELEMENTS =================
+    const loginScreen = document.getElementById('loginScreen');
+    const chatScreen = document.getElementById('chatScreen');
+    const loginForm = document.getElementById('loginForm');
+    const usernameInput = document.getElementById('username');
+    const messagesArea = document.getElementById('messagesArea');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const groupVoiceBtn = document.getElementById('groupVoiceBtn');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const settingsModal = document.getElementById('settingsModal');
+    const changeNameBtn = document.getElementById('changeNameBtn');
+    const changePhotoBtn = document.getElementById('changePhotoBtn');
+    const logoutFromSettingsBtn = document.getElementById('logoutFromSettingsBtn');
+    const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+    const emojiBtn = document.getElementById('emojiBtn');
+    const fileBtn = document.getElementById('fileBtn');
+    const recordBtn = document.getElementById('recordBtn');
+    const fileInput = document.getElementById('fileInput');
+    const editProfilePicInput = document.getElementById('editProfilePicInput');
+    const emojiPicker = document.getElementById('emojiPicker');
+    const usersList = document.getElementById('usersList');
+    const onlineCount = document.getElementById('onlineCount');
+    const groupVoiceMembersBar = document.getElementById('groupVoiceMembersBar');
+    const groupVoiceMembersText = document.getElementById('groupVoiceMembersText');
+    const inputArea = document.querySelector('.input-area');
+    const socialPanel = document.querySelector('.social-panel');
+    const chatViewBtn = document.getElementById('chatViewBtn');
+    const socialViewBtn = document.getElementById('socialViewBtn');
+    const statusTabBtn = document.getElementById('statusTabBtn');
+    const reelsTabBtn = document.getElementById('reelsTabBtn');
+    const statusPanel = document.getElementById('statusPanel');
+    const reelsPanel = document.getElementById('reelsPanel');
+    const statusInput = document.getElementById('statusInput');
+    const postStatusBtn = document.getElementById('postStatusBtn');
+    const statusList = document.getElementById('statusList');
+    const reelVideoInput = document.getElementById('reelVideoInput');
+    const reelCaptionInput = document.getElementById('reelCaptionInput');
+    const postReelBtn = document.getElementById('postReelBtn');
+    const reelsList = document.getElementById('reelsList');
+    const reelFullscreenModal = document.getElementById('reelFullscreenModal');
+    const reelFullscreenVideo = document.getElementById('reelFullscreenVideo');
+    const closeReelFullscreenBtn = document.getElementById('closeReelFullscreenBtn');
+    const baseDocumentTitle = document.title;
+    let unreadNotifications = 0;
+    let notificationAudioContext = null;
+    const STATUS_TTL_MS = 24 * 60 * 60 * 1000;
+
+    // =================== UTILITY FUNCTIONS =================
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function generateUserId() {
+      return 'user_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    function getInitials(name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().substr(0, 2);
+    }
+
+    function getColorFromString(str) {
+      const colors = [
+        '#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8',
+        '#F7DC6F', '#BB8FCE', '#85C1E2', '#F8B88B', '#AED6F1'
+      ];
+      return colors[str.length % colors.length];
+    }
+
+    function updateUnreadTitle() {
+      document.title = unreadNotifications > 0
+        ? `(${unreadNotifications}) ${baseDocumentTitle}`
+        : baseDocumentTitle;
+    }
+
+    function resetUnreadNotifications() {
+      unreadNotifications = 0;
+      updateUnreadTitle();
+    }
+
+    function buildNotificationBody(message) {
+      const privateSuffix = message.recipientId && message.recipientId !== 'all' ? ' (private)' : '';
+      if (message.type === 'file') {
+        return `${message.username} mengirim file${privateSuffix}`;
+      }
+      if (message.type === 'voice') {
+        return `${message.username} mengirim voice message${privateSuffix}`;
+      }
+      const text = (message.text || '').trim();
+      return `${message.username}: ${text || 'Pesan baru'}${privateSuffix}`;
+    }
+
+    function getNotificationAudioContext() {
+      if (!notificationAudioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return null;
+        notificationAudioContext = new AudioCtx();
+      }
+      return notificationAudioContext;
+    }
+
+    function playIncomingSound() {
+      const audioContext = getNotificationAudioContext();
+      if (!audioContext) return;
+
+      const beep = (frequency, startTime, duration) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, startTime);
+        gainNode.gain.setValueAtTime(0.0001, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.08, startTime + 0.01);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+
+      const start = audioContext.currentTime + 0.01;
+      beep(880, start, 0.08);
+      beep(660, start + 0.1, 0.1);
+    }
+
+    function notifyIncomingMessage(message) {
+      if (!message || message.userId === state.userId) return;
+
+      if (document.hidden) {
+        unreadNotifications += 1;
+        updateUnreadTitle();
+      }
+
+      const body = buildNotificationBody(message);
+      playIncomingSound();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('💬 Pesan Masuk', { body });
+        } catch (err) {
+          console.error('Gagal menampilkan notifikasi browser:', err);
+        }
+      }
+    }
+
+    function requestNotificationPermission() {
+      if (!('Notification' in window)) return;
+      const audioContext = getNotificationAudioContext();
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume().catch(() => {});
+      }
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {});
+      }
+    }
+
+    function formatFeedTime(date) {
+      return new Date(date).toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    function isStatusExpired(status) {
+      if (!status || !status.timestamp) return true;
+      const createdAt = new Date(status.timestamp).getTime();
+      if (!createdAt) return true;
+      return (Date.now() - createdAt) >= STATUS_TTL_MS;
+    }
+
+    function pruneExpiredStatuses() {
+      state.statuses = state.statuses.filter((status) => !isStatusExpired(status));
+    }
+
+    function setSocialTab(tabName) {
+      const showStatus = tabName === 'status';
+      statusTabBtn.classList.toggle('active', showStatus);
+      reelsTabBtn.classList.toggle('active', !showStatus);
+      statusPanel.classList.toggle('active', showStatus);
+      reelsPanel.classList.toggle('active', !showStatus);
+    }
+
+    function setMainView(viewName) {
+      const showSocial = viewName === 'social';
+
+      chatViewBtn.style.background = showSocial ? 'rgba(255, 255, 255, 0.05)' : 'rgba(42, 171, 238, 0.16)';
+      chatViewBtn.style.borderColor = showSocial ? 'var(--border)' : 'rgba(42, 171, 238, 0.5)';
+      socialViewBtn.style.background = showSocial ? 'rgba(42, 171, 238, 0.16)' : 'rgba(255, 255, 255, 0.05)';
+      socialViewBtn.style.borderColor = showSocial ? 'rgba(42, 171, 238, 0.5)' : 'var(--border)';
+
+      groupVoiceMembersBar.style.display = showSocial ? 'none' : 'flex';
+      messagesArea.style.display = showSocial ? 'none' : 'flex';
+      inputArea.style.display = showSocial ? 'none' : 'block';
+      socialPanel.style.display = showSocial ? 'grid' : 'none';
+    }
+
+    function renderStatuses() {
+      pruneExpiredStatuses();
+      const statuses = [...state.statuses].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      if (!statuses.length) {
+        statusList.innerHTML = '<div class="status-item"><div class="status-text">Belum ada status.</div></div>';
+        return;
+      }
+
+      statusList.innerHTML = statuses.map((status) => {
+        const timeText = formatFeedTime(status.timestamp);
+        return `
+          <div class="status-item">
+            <div class="status-meta">
+              <span>${escapeHtml(status.username || 'Anonymous')}</span>
+              <span>${escapeHtml(timeText)}</span>
+            </div>
+            <div class="status-text">${escapeHtml(status.text || '')}</div>
+            ${status.userId === state.userId ? `<div class="status-actions"><button type="button" class="status-delete-btn" data-status-id="${escapeHtml(status.id)}">Hapus</button></div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteStatus(statusId) {
+      if (!statusId) return;
+      const ok = window.confirm('Yakin ingin menghapus status ini?');
+      if (!ok) return;
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        alert('Koneksi server belum siap. Coba lagi sebentar.');
+        return;
+      }
+      state.ws.send(JSON.stringify({
+        type: 'deleteStatus',
+        statusId
+      }));
+    }
+
+    function renderReels() {
+      const reels = [...state.reels].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      if (!reels.length) {
+        reelsList.innerHTML = '<div class="reel-item"><div class="reel-caption">Belum ada reels.</div></div>';
+        return;
+      }
+
+      reelsList.innerHTML = reels.map((reel) => {
+        const timeText = formatFeedTime(reel.timestamp);
+        const caption = (reel.caption || '').trim();
+        return `
+          <div class="reel-item">
+            <div class="reel-meta">
+              <span>${escapeHtml(reel.username || 'Anonymous')}</span>
+              <span>${escapeHtml(timeText)}</span>
+            </div>
+            <video class="reel-video" controls src="${reel.videoData}"></video>
+            <div class="reel-caption">${caption ? escapeHtml(caption) : '<i>Tanpa caption</i>'}</div>
+            ${reel.userId === state.userId ? `<div class="reel-actions"><button type="button" class="reel-delete-btn" data-reel-id="${escapeHtml(reel.id)}">Hapus Reel</button></div>` : ''}
+          </div>
+        `;
+      }).join('');
+
+      applyReelVideoSizing();
+    }
+
+    function deleteReel(reelId) {
+      if (!reelId) return;
+      const ok = window.confirm('Yakin ingin menghapus reel ini?');
+      if (!ok) return;
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        alert('Koneksi server belum siap. Coba lagi sebentar.');
+        return;
+      }
+      state.ws.send(JSON.stringify({
+        type: 'deleteReel',
+        reelId
+      }));
+    }
+
+    function applyReelVideoSizing() {
+      const videos = reelsList.querySelectorAll('.reel-video');
+      videos.forEach((videoEl) => {
+        const applyByRatio = () => {
+          if (!videoEl.videoWidth || !videoEl.videoHeight) return;
+          const ratio = videoEl.videoWidth / videoEl.videoHeight;
+          const isPortrait = ratio < 0.95;
+          videoEl.classList.toggle('portrait', isPortrait);
+          videoEl.classList.toggle('landscape', !isPortrait);
+        };
+
+        if (videoEl.readyState >= 1) {
+          applyByRatio();
+        }
+        videoEl.addEventListener('loadedmetadata', applyByRatio, { once: true });
+      });
+    }
+
+    function postStatus() {
+      const text = statusInput.value.trim();
+      if (!text) return;
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        alert('Koneksi server belum siap. Coba lagi sebentar.');
+        return;
+      }
+
+      state.ws.send(JSON.stringify({
+        type: 'status',
+        text
+      }));
+      statusInput.value = '';
+    }
+
+    function postReel() {
+      const file = reelVideoInput.files[0];
+      if (!file) {
+        alert('Pilih file video dulu untuk reels.');
+        return;
+      }
+
+      if (!file.type.startsWith('video/')) {
+        alert('File harus berupa video.');
+        return;
+      }
+
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        alert('Koneksi server belum siap. Coba lagi sebentar.');
+        return;
+      }
+
+      const caption = reelCaptionInput.value.trim();
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        state.ws.send(JSON.stringify({
+          type: 'reel',
+          filename: file.name,
+          caption,
+          videoData: event.target.result
+        }));
+      };
+      reader.readAsDataURL(file);
+
+      reelVideoInput.value = '';
+      reelCaptionInput.value = '';
+    }
+
+    function openReelFullscreen(videoSrc) {
+      if (!videoSrc) return;
+      reelFullscreenVideo.src = videoSrc;
+      reelFullscreenModal.classList.add('active');
+      reelFullscreenVideo.play().catch(() => {});
+    }
+
+    function closeReelFullscreen() {
+      reelFullscreenModal.classList.remove('active');
+      reelFullscreenVideo.pause();
+      reelFullscreenVideo.removeAttribute('src');
+      reelFullscreenVideo.load();
+    }
+
+    function formatTime(date) {
+      const now = new Date(date);
+      return now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function isGroupView() {
+      return state.chatMode === 'group';
+    }
+
+    function isPrivateView() {
+      return state.chatMode === 'private' && !!state.currentTarget;
+    }
+
+    function isGroupMessage(message) {
+      return !message.recipientId || message.recipientId === 'all';
+    }
+
+    function isPrivateMessageForCurrentTarget(message) {
+      if (!isPrivateView()) return false;
+      return (
+        (message.recipientId === state.currentTarget && message.userId === state.userId) ||
+        (message.userId === state.currentTarget && message.recipientId === state.userId)
+      );
+    }
+
+    function isMessageVisibleInCurrentView(message) {
+      if (isGroupView()) {
+        return isGroupMessage(message);
+      }
+      if (isPrivateView()) {
+        return isPrivateMessageForCurrentTarget(message);
+      }
+      return false;
+    }
+
+    // =================== WEBSOCKET SETUP =================
+    function connectWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      state.ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+      state.ws.onopen = () => {
+        console.log('✅ Connected to server');
+        const payload = {
+          type: 'join',
+          userId: state.userId,
+          username: state.username
+        };
+        if (state.profilePic) payload.profilePic = state.profilePic;
+        state.ws.send(JSON.stringify(payload));
+      };
+
+      state.ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleServerMessage(data);
+      };
+
+      state.ws.onerror = (error) => {
+        console.error('❌ WebSocket error:', error);
+      };
+
+      state.ws.onclose = () => {
+        console.log('Disconnected from server');
+        leaveGroupVoice(false);
+      };
+    }
+
+    // =================== MESSAGE HANDLERS =================
+    // Handler utama untuk semua pesan non-signaling (chat, user list, dll)
+    function handleAppMessage(data) {
+      console.log('[handleAppMessage]', data.type, data);
+      switch (data.type) {
+        case 'history':
+          state.messages = data.messages || [];
+          renderMessages();
+          break;
+
+        case 'statusHistory':
+          state.statuses = (data.statuses || []).filter((status) => !isStatusExpired(status));
+          renderStatuses();
+          break;
+
+        case 'reelHistory':
+          state.reels = data.reels || [];
+          renderReels();
+          break;
+
+        case 'message':
+          // always store
+          state.messages.push(data);
+          if (isMessageVisibleInCurrentView(data)) {
+            addMessageToUI(data);
+          }
+          notifyIncomingMessage(data);
+          break;
+
+        case 'file':
+          // file messages are broadcast with type 'file'
+          state.messages.push(data);
+          if (isMessageVisibleInCurrentView(data)) {
+            addMessageToUI(data);
+          }
+          notifyIncomingMessage(data);
+          break;
+
+        case 'voice':
+          state.messages.push(data);
+          if (isMessageVisibleInCurrentView(data)) {
+            addMessageToUI(data);
+          }
+          notifyIncomingMessage(data);
+          break;
+
+        case 'status':
+          state.statuses.push(data);
+          renderStatuses();
+          break;
+
+        case 'statusDeleted':
+          state.statuses = state.statuses.filter((status) => status.id !== data.statusId);
+          renderStatuses();
+          break;
+
+        case 'reel':
+          state.reels.push(data);
+          renderReels();
+          break;
+
+        case 'reelDeleted':
+          state.reels = state.reels.filter((reel) => reel.id !== data.reelId);
+          renderReels();
+          break;
+
+        case 'userJoined':
+          state.users = data.users || [];
+          console.log('[userJoined] Updated users:', state.users);
+          updateUsersList();
+          if (data.user.id !== state.userId) {
+            addSystemMessage(`✅ ${data.user.username} bergabung dengan chat`);
+          }
+          break;
+
+        case 'userLeft':
+          state.users = data.users || [];
+          updateUsersList();
+          addSystemMessage(`👋 ${data.username} meninggalkan chat`);
+          break;
+
+        case 'userList':
+          state.users = data.users || [];
+          console.log('[userList] Updated users:', state.users);
+          updateUsersList();
+          break;
+
+        case 'userUpdated':
+          state.users = data.users || [];
+          updateUsersList();
+          if (data.user && data.user.id === state.userId) {
+            state.username = data.user.username;
+            state.profilePic = data.user.profilePic || null;
+            persistUserToStorage();
+          }
+          addSystemMessage(`📝 ${escapeHtml(data.user.username)} memperbarui profil`);
+          break;
+
+        case 'userTyping':
+          // Could show typing indicator here
+          break;
+      }
+    }
+
+    function addMessageToUI(message) {
+      const messageEl = createMessageElement(message);
+      messagesArea.appendChild(messageEl);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // handle voice message playback
+    function createVoiceElement(message) {
+      const div = document.createElement('div');
+      div.className = 'message';
+      if (message.userId === state.userId) {
+        div.classList.add('own');
+      }
+      const color = getColorFromString(message.username);
+      const initials = getInitials(message.username);
+      const time = formatTime(message.timestamp);
+      let audioHtml = `<audio controls src="${message.voiceData}"></audio>`;
+      div.innerHTML = `
+        <div class="message-avatar" style="background: ${color};">${initials}</div>
+        <div class="message-content">
+          <div class="message-header">
+            <div class="message-username">${escapeHtml(message.username)}</div>
+            <div class="message-time">${time}</div>
+          </div>
+          ${audioHtml}
+        </div>
+      `;
+      return div;
+    }
+
+
+    // =================== WEBRTC CALL =================
+    const rtcConfig = {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'stun:openrelay.metered.ca:80' },
+        {
+          urls: 'turn:openrelay.metered.ca:80',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        },
+        {
+          urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+          username: 'openrelayproject',
+          credential: 'openrelayproject'
+        }
+      ]
+    };
+    let groupVoiceActive = false;
+    const groupPeers = new Map();
+    const groupAudioEls = new Map();
+    const groupRemoteStreams = new Map();
+    const groupPendingCandidates = new Map();
+    const groupVoiceMembers = new Map();
+    const groupVoiceMemberStates = new Map();
+    const groupDisconnectCleanupTimers = new Map();
+
+    function queueGroupCandidate(peerId, candidate) {
+      if (!groupPendingCandidates.has(peerId)) {
+        groupPendingCandidates.set(peerId, []);
+      }
+      groupPendingCandidates.get(peerId).push(candidate);
+    }
+
+    async function flushGroupCandidates(peerId, peer) {
+      const list = groupPendingCandidates.get(peerId) || [];
+      if (!list.length) return;
+      for (const candidate of list) {
+        try {
+          await peer.addIceCandidate(new RTCIceCandidate(candidate));
+        } catch (err) {
+          console.error('Failed to flush queued ICE candidate', err);
+        }
+      }
+      groupPendingCandidates.delete(peerId);
+    }
+
+    function setGroupMemberState(userId, stateValue) {
+      groupVoiceMemberStates.set(userId, stateValue || 'new');
+      renderGroupVoiceMembers();
+    }
+
+    function getGroupMemberStateLabel(stateValue) {
+      const value = stateValue || 'new';
+      if (value === 'connected') return 'Connected';
+      if (value === 'connecting') return 'Connecting';
+      if (value === 'failed') return 'Failed';
+      if (value === 'disconnected') return 'Disconnected';
+      if (value === 'closed') return 'Closed';
+      return 'New';
+    }
+
+    function renderGroupVoiceMembers() {
+      const names = Array.from(groupVoiceMembers.values());
+      if (!names.length) {
+        groupVoiceMembersText.textContent = 'Belum ada yang join';
+        return;
+      }
+
+      groupVoiceMembersText.innerHTML = Array.from(groupVoiceMembers.entries())
+        .map(([memberId, name]) => {
+          const stateValue = groupVoiceMemberStates.get(memberId) || 'new';
+          const stateLabel = getGroupMemberStateLabel(stateValue);
+          return `<span class="group-voice-chip">${escapeHtml(name)}<span class="group-voice-chip-state ${escapeHtml(stateValue)}">${escapeHtml(stateLabel)}</span></span>`;
+        })
+        .join(' ');
+    }
+
+    async function ensureGroupAudioStream() {
+      if (!localStream) {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      }
+      return localStream;
+    }
+
+    function releaseMicIfIdle() {
+      const recorderActive = !!mediaRecorder;
+      if (groupVoiceActive || callActive || recorderActive) {
+        return;
+      }
+
+      if (localStream) {
+        try {
+          localStream.getTracks().forEach((track) => track.stop());
+        } catch (_) {}
+        localStream = null;
+      }
+    }
+
+    function removeGroupPeer(peerId) {
+      const cleanupTimer = groupDisconnectCleanupTimers.get(peerId);
+      if (cleanupTimer) {
+        clearTimeout(cleanupTimer);
+      }
+      groupDisconnectCleanupTimers.delete(peerId);
+
+      const existingPc = groupPeers.get(peerId);
+      if (existingPc) {
+        try {
+          existingPc.close();
+        } catch (_) {}
+      }
+      groupPeers.delete(peerId);
+
+      const audioEl = groupAudioEls.get(peerId);
+      if (audioEl) {
+        audioEl.remove();
+      }
+      groupAudioEls.delete(peerId);
+
+      groupRemoteStreams.delete(peerId);
+      groupPendingCandidates.delete(peerId);
+      groupVoiceMemberStates.delete(peerId);
+      renderGroupVoiceMembers();
+    }
+
+    function resumeRemoteAudioPlayback() {
+      groupAudioEls.forEach((audioEl) => {
+        if (audioEl && audioEl.srcObject) {
+          audioEl.play().catch(() => {});
+        }
+      });
+    }
+
+    function attachGroupAudio(peerId, stream) {
+      let audioEl = groupAudioEls.get(peerId);
+      if (!audioEl) {
+        audioEl = document.createElement('audio');
+        audioEl.autoplay = true;
+        audioEl.playsInline = true;
+        audioEl.style.display = 'none';
+        document.body.appendChild(audioEl);
+        groupAudioEls.set(peerId, audioEl);
+      }
+      audioEl.srcObject = stream;
+      audioEl.play().catch((err) => {
+        console.warn('Autoplay audio fallback diblokir browser:', err);
+      });
+    }
+
+    async function createGroupPeer(peerId, initiateOffer = false) {
+      if (groupPeers.has(peerId)) {
+        return groupPeers.get(peerId);
+      }
+
+      const peer = new RTCPeerConnection(rtcConfig);
+      groupPeers.set(peerId, peer);
+      setGroupMemberState(peerId, 'connecting');
+
+      peer.onicecandidate = (event) => {
+        if (event.candidate && state.ws && state.ws.readyState === WebSocket.OPEN) {
+          state.ws.send(JSON.stringify({
+            type: 'groupVoiceCandidate',
+            recipientId: peerId,
+            candidate: event.candidate
+          }));
+        }
+      };
+
+      peer.ontrack = (event) => {
+        let stream = null;
+
+        if (event.streams && event.streams[0]) {
+          stream = event.streams[0];
+        } else {
+          stream = groupRemoteStreams.get(peerId) || new MediaStream();
+          stream.addTrack(event.track);
+          groupRemoteStreams.set(peerId, stream);
+        }
+
+        attachGroupAudio(peerId, stream);
+        setGroupMemberState(peerId, 'connected');
+      };
+
+      peer.onconnectionstatechange = () => {
+        const stateValue = peer.connectionState || 'new';
+        setGroupMemberState(peerId, stateValue);
+
+        if (stateValue === 'connected') {
+          const cleanupTimer = groupDisconnectCleanupTimers.get(peerId);
+          if (cleanupTimer) {
+            clearTimeout(cleanupTimer);
+            groupDisconnectCleanupTimers.delete(peerId);
+          }
+          return;
+        }
+
+        if (stateValue === 'disconnected') {
+          if (!groupDisconnectCleanupTimers.has(peerId)) {
+            const timeoutId = setTimeout(() => {
+              const latestPeer = groupPeers.get(peerId);
+              if (!latestPeer) return;
+              if (latestPeer.connectionState === 'disconnected') {
+                removeGroupPeer(peerId);
+              }
+              groupDisconnectCleanupTimers.delete(peerId);
+            }, 12000);
+            groupDisconnectCleanupTimers.set(peerId, timeoutId);
+          }
+          return;
+        }
+
+        if (stateValue === 'failed' || stateValue === 'closed') {
+          removeGroupPeer(peerId);
+        }
+      };
+
+      const stream = await ensureGroupAudioStream();
+      stream.getTracks().forEach((track) => peer.addTrack(track, stream));
+
+      if (initiateOffer) {
+        const offer = await peer.createOffer();
+        await peer.setLocalDescription(offer);
+        if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+          state.ws.send(JSON.stringify({
+            type: 'groupVoiceOffer',
+            recipientId: peerId,
+            offer: offer
+          }));
+        }
+      }
+
+      await flushGroupCandidates(peerId, peer);
+
+      return peer;
+    }
+
+    async function joinGroupVoice() {
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        alert('Koneksi server belum siap. Coba lagi sebentar.');
+        return;
+      }
+
+      try {
+        await ensureGroupAudioStream();
+      } catch (err) {
+        console.error('Gagal akses mikrofon untuk live grup:', err);
+        alert('Tidak bisa akses mikrofon: ' + (err.message || err.name));
+        return;
+      }
+
+      // user gesture happened here, use it to resume remote media playback
+      resumeRemoteAudioPlayback();
+
+      groupVoiceActive = true;
+      groupVoiceMembers.set(state.userId, state.username || 'Saya');
+      setGroupMemberState(state.userId, 'connected');
+      renderGroupVoiceMembers();
+      groupVoiceBtn.textContent = '🛑 Stop Live';
+      state.ws.send(JSON.stringify({ type: 'groupVoiceJoin' }));
+      addSystemMessage('🎧 Kamu masuk live audio grup');
+    }
+
+    function leaveGroupVoice(sendSignal = true) {
+      if (sendSignal && state.ws && state.ws.readyState === WebSocket.OPEN && groupVoiceActive) {
+        state.ws.send(JSON.stringify({ type: 'groupVoiceLeave' }));
+      }
+
+      groupPeers.forEach((_, peerId) => removeGroupPeer(peerId));
+      groupPeers.clear();
+      groupAudioEls.clear();
+      groupRemoteStreams.clear();
+
+      groupVoiceActive = false;
+      groupVoiceMembers.delete(state.userId);
+      groupVoiceMemberStates.delete(state.userId);
+      renderGroupVoiceMembers();
+      groupVoiceBtn.textContent = '🎧 Live Grup';
+      releaseMicIfIdle();
+    }
+
+    async function handleGroupVoiceMessage(data) {
+      switch (data.type) {
+        case 'groupVoiceInvite':
+          if (data.userId === state.userId) {
+            addSystemMessage('📢 Undangan Live Grup terkirim ke semua peserta');
+          } else {
+            addSystemMessage(`📢 ${escapeHtml(data.username || 'Seseorang')} mengundang kamu untuk join Live Grup. Klik tombol 🎧 Live Grup untuk bergabung.`);
+          }
+          break;
+
+        case 'groupVoiceState':
+          if (!groupVoiceActive) return;
+          groupVoiceMembers.clear();
+          groupVoiceMemberStates.clear();
+          groupVoiceMembers.set(state.userId, state.username || 'Saya');
+          groupVoiceMemberStates.set(state.userId, 'connected');
+          for (const user of (data.users || [])) {
+            if (user.id && user.id !== state.userId) {
+              groupVoiceMembers.set(user.id, user.username || user.id);
+              groupVoiceMemberStates.set(user.id, 'connecting');
+              // joiner waits for existing peers to offer (avoid offer glare)
+              await createGroupPeer(user.id, false);
+            }
+          }
+          renderGroupVoiceMembers();
+          break;
+
+        case 'groupVoiceJoin':
+          if (data.userId && data.userId !== state.userId) {
+            groupVoiceMembers.set(data.userId, data.username || data.userId);
+            groupVoiceMemberStates.set(data.userId, 'connecting');
+            renderGroupVoiceMembers();
+            // existing user initiates connection to the newly joined user
+            await createGroupPeer(data.userId, true);
+          }
+          break;
+
+        case 'groupVoiceOffer':
+          if (!groupVoiceActive || !data.userId) return;
+          {
+            let peer = groupPeers.get(data.userId);
+            if (peer && peer.signalingState !== 'stable') {
+              removeGroupPeer(data.userId);
+              peer = null;
+            }
+            peer = peer || await createGroupPeer(data.userId, false);
+            await peer.setRemoteDescription(new RTCSessionDescription(data.offer));
+            await flushGroupCandidates(data.userId, peer);
+            const answer = await peer.createAnswer();
+            await peer.setLocalDescription(answer);
+            if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+              state.ws.send(JSON.stringify({
+                type: 'groupVoiceAnswer',
+                recipientId: data.userId,
+                answer: answer
+              }));
+            }
+          }
+          break;
+
+        case 'groupVoiceAnswer':
+          if (!groupVoiceActive || !data.userId) return;
+          {
+            const peer = groupPeers.get(data.userId);
+            if (peer) {
+              await peer.setRemoteDescription(new RTCSessionDescription(data.answer));
+            }
+          }
+          break;
+
+        case 'groupVoiceCandidate':
+          if (!groupVoiceActive || !data.userId) return;
+          {
+            const peer = groupPeers.get(data.userId) || await createGroupPeer(data.userId, false);
+            if (data.candidate) {
+              if (!peer.remoteDescription) {
+                queueGroupCandidate(data.userId, data.candidate);
+              } else {
+                try {
+                  await peer.addIceCandidate(new RTCIceCandidate(data.candidate));
+                } catch (err) {
+                  console.error('Failed to add group ICE candidate', err);
+                }
+              }
+            }
+          }
+          break;
+
+        case 'groupVoiceLeave':
+          if (data.userId) {
+            removeGroupPeer(data.userId);
+            groupVoiceMembers.delete(data.userId);
+            groupVoiceMemberStates.delete(data.userId);
+            renderGroupVoiceMembers();
+          }
+          break;
+      }
+    }
+
+    let callActive = false;
+    async function startCall() {
+      if (callActive) {
+        hangUp();
+        return;
+      }
+      if (!isPrivateView()) {
+        alert('Select a user to call first');
+        return;
+      }
+      try {
+        if (!localStream) {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+      } catch (err) {
+        console.error('getUserMedia failed', err);
+        alert('Cannot access microphone: ' + err.message);
+        return;
+      }
+      pc = new RTCPeerConnection(rtcConfig);
+      pc.onicecandidate = e => {
+        if (e.candidate) {
+          state.ws.send(JSON.stringify({
+            type: 'candidate',
+            candidate: e.candidate,
+            recipientId: state.currentTarget,
+            userId: state.userId
+          }));
+        }
+      };
+      pc.ontrack = e => {
+        const audio = document.getElementById('remoteAudio');
+        audio.srcObject = e.streams[0];
+      };
+      localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+      state.ws.send(JSON.stringify({
+        type: 'offer',
+        offer: offer,
+        recipientId: state.currentTarget,
+        userId: state.userId
+      }));
+      callActive = true;
+      document.getElementById('callBtn').textContent = '🔴 Hang Up';
+    }
+
+    function hangUp() {
+      if (pc) {
+        pc.close();
+        pc = null;
+      }
+      // let peer know we ended the call
+      if (state.currentTarget) {
+        state.ws.send(JSON.stringify({
+          type: 'end',
+          recipientId: state.currentTarget,
+          userId: state.userId
+        }));
+      }
+      callActive = false;
+      document.getElementById('callBtn').textContent = '☎️ Panggil';
+      releaseMicIfIdle();
+    }
+
+    async function handleSignalingMessage(data) {
+      // ensure connection exists for offers/answers
+      if (!pc && (data.type === 'offer' || data.type === 'answer')) {
+        pc = new RTCPeerConnection(rtcConfig);
+        pc.onicecandidate = e => {
+          if (e.candidate) {
+            state.ws.send(JSON.stringify({
+              type: 'candidate',
+              candidate: e.candidate,
+              recipientId: data.userId,
+              userId: state.userId
+            }));
+          }
+        };
+        pc.ontrack = e => {
+          const audio = document.getElementById('remoteAudio');
+          audio.srcObject = e.streams[0];
+        };
+        if (!localStream) {
+          try {
+            localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          } catch (err) {
+            console.error('getUserMedia failed during signaling', err);
+          }
+        }
+        if (localStream) {
+          localStream.getTracks().forEach(t => pc.addTrack(t, localStream));
+        }
+      }
+
+      switch(data.type) {
+        case 'offer':
+          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          state.ws.send(JSON.stringify({
+            type: 'answer',
+            answer: answer,
+            recipientId: data.userId,
+            userId: state.userId
+          }));
+          callActive = true;
+          document.getElementById('callBtn').textContent = '🔴 Hang Up';
+          break;
+        case 'answer':
+          if (pc) {
+            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          }
+          break;
+        case 'candidate':
+          if (data.candidate && pc) {
+            try {
+              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } catch (err) {
+              console.error('Failed to add remote ICE candidate', err);
+            }
+          }
+          break;
+        case 'end':
+          // remote hung up
+          hangUp();
+          break;
+      }
+    }
+
+    // wire signaling: bungkus handler utama dengan router signaling
+    const originalHandle = handleAppMessage;
+    function handleServerMessage(data) {
+      try {
+        console.log('[wrapper] Received message type:', data.type, 'data:', data);
+        if (!data || !data.type) {
+          console.warn('[wrapper] Invalid message data');
+          return;
+        }
+        if (['offer','answer','candidate','end'].includes(data.type)) {
+          console.log('[wrapper] Routing to handleSignalingMessage');
+          handleSignalingMessage(data);
+        } else if (['groupVoiceInvite','groupVoiceState','groupVoiceJoin','groupVoiceLeave','groupVoiceOffer','groupVoiceAnswer','groupVoiceCandidate'].includes(data.type)) {
+          handleGroupVoiceMessage(data);
+        } else {
+          console.log('[wrapper] Routing to originalHandle, originalHandle is:', typeof originalHandle);
+          originalHandle(data);
+        }
+      } catch (err) {
+        console.error('[wrapper] Error in handleServerMessage:', err);
+      }
+    }
+
+    // call button
+    document.getElementById('callBtn').addEventListener('click', startCall);
+    groupVoiceBtn.addEventListener('click', async () => {
+      if (groupVoiceActive) {
+        leaveGroupVoice(true);
+        addSystemMessage('🎧 Kamu keluar dari live audio grup');
+      } else {
+        await joinGroupVoice();
+      }
+    });
+
+
+    function createMessageElement(message) {
+      // voice message overrides
+      if (message.type === 'voice') {
+        return createVoiceElement(message);
+      }
+      const div = document.createElement('div');
+      div.className = 'message';
+      if (message.userId === state.userId) {
+        div.classList.add('own');
+      }
+
+      const color = getColorFromString(message.username);
+      const initials = getInitials(message.username);
+      const pic = message.profilePic || (state.users.find(u=>u.id===message.userId)||{}).profilePic;
+      const time = formatTime(message.timestamp);
+
+      let contentHtml = '';
+
+      // Text message
+      if (message.text && message.text.trim()) {
+        contentHtml = `<div class="message-text">${escapeHtml(message.text)}</div>`;
+      }
+
+      // private note
+      if (message.recipientId && message.recipientId !== 'all') {
+        let targetName = 'Unknown';
+        const u = state.users.find(x=>x.id===message.recipientId);
+        if (u) targetName = u.username;
+        contentHtml += `<div style="font-size:11px;color:var(--text-secondary);">(private to ${escapeHtml(targetName)})</div>`;
+      }
+
+      // File / Image message
+      if (message.type === 'file' && message.fileData) {
+        // Image preview
+        if (typeof message.fileData === 'string' && message.fileData.startsWith('data:image')) {
+          contentHtml = `
+            <div class="message-file">
+              <img src="${message.fileData}" alt="${escapeHtml(message.filename || 'image')}" style="max-width:360px; border-radius:12px; display:block;" />
+            </div>
+          `;
+        } else {
+          // Other file types: show download link
+          const fname = escapeHtml(message.filename || 'file');
+          contentHtml = `<div class="message-file"><a href="${message.fileData}" download="${fname}">${fname}</a></div>`;
+        }
+      }
+
+      let avatarElem = '';
+      if (pic) {
+        avatarElem = `<img class="message-avatar" src="${pic}" style="object-fit:cover;"/>`;
+      } else {
+        avatarElem = `<div class="message-avatar" style="background: ${color};">${initials}</div>`;
+      }
+      div.innerHTML = `
+        ${avatarElem}
+        <div class="message-content">
+          <div class="message-header">
+            <div class="message-username">${escapeHtml(message.username)}</div>
+            <div class="message-time">${time}</div>
+          </div>
+          ${contentHtml}
+        </div>
+      `;
+
+      return div;
+    }
+
+    function addSystemMessage(text) {
+      const div = document.createElement('div');
+      div.className = 'message text-center';
+      div.innerHTML = `<div style="font-size: 12px; color: var(--text-secondary); width: 100%;">${text}</div>`;
+      messagesArea.appendChild(div);
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function renderMessages() {
+      messagesArea.innerHTML = '';
+      state.messages.forEach(msg => {
+        if (isMessageVisibleInCurrentView(msg)) {
+          addMessageToUI(msg);
+        }
+      });
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    function updateUsersList() {
+      console.log('[updateUsersList] state.users:', state.users);
+      console.log('[updateUsersList] usersList element:', usersList);
+      
+      if (!usersList) {
+        console.error('usersList element not found!');
+        return;
+      }
+      
+      usersList.innerHTML = '';
+      
+      // Debug: show user count
+      const debugDiv = document.createElement('div');
+      debugDiv.style.padding = '5px';
+      debugDiv.style.fontSize = '10px';
+      debugDiv.style.color = '#666';
+      debugDiv.textContent = `DEBUG: ${state.users.length} users loaded`;
+      usersList.appendChild(debugDiv);
+      
+      // group chat item
+      const groupItem = document.createElement('div');
+      groupItem.className = 'user-item';
+      if (isGroupView()) {
+        groupItem.classList.add('active');
+      }
+      groupItem.innerHTML = `<div class="user-info"><div class="user-name">💬 Room Chat Umum</div></div>`;
+      groupItem.addEventListener('click', () => {
+        state.chatMode = 'group';
+        state.currentTarget = null;
+        updateUsersList();
+        updateChatHeader();
+      });
+      usersList.appendChild(groupItem);
+      onlineCount.textContent = state.users.length;
+      console.log('[updateUsersList] Added group item, found', state.users.length, 'users');
+
+      state.users.forEach((user, idx) => {
+        console.log('[updateUsersList] Adding user', idx, ':', user.username, 'ID:', user.id);
+        const div = document.createElement('div');
+        div.className = 'user-item';
+        if (isPrivateView() && state.currentTarget === user.id) {
+          div.classList.add('active');
+        }
+        const initials = getInitials(user.username);
+
+        let avatarHtml = '';
+        if (user.profilePic) {
+          avatarHtml = `<img src="${user.profilePic}" class="user-avatar" style="object-fit:cover;"/>`;
+        } else {
+          avatarHtml = `<div class="user-avatar" style="background: ${user.color};">${initials}</div>`;
+        }
+
+        div.innerHTML = `
+          ${avatarHtml}
+          <div class="user-info">
+            <div class="user-name">${escapeHtml(user.username)}</div>
+            <div class="user-status">Online now</div>
+          </div>
+        `;
+        div.addEventListener('click', () => {
+          state.chatMode = 'private';
+          state.currentTarget = user.id;
+          updateUsersList();
+          updateChatHeader();
+        });
+
+        usersList.appendChild(div);
+      });
+      console.log('[updateUsersList] Done updating users list');
+    }
+
+    function updateChatHeader() {
+      const title = document.getElementById('chatHeaderTitle');
+      if (isPrivateView()) {
+        const u = state.users.find(x => x.id === state.currentTarget);
+        title.textContent = `💬 Chat with ${u ? u.username : '??'}`;
+      } else if (isGroupView()) {
+        title.textContent = '💬 Room Chat Umum';
+      } else {
+        title.textContent = '💬 Pilih chat dulu';
+      }
+      renderMessages();
+    }
+
+    // allow clicking header to reset to group
+    document.addEventListener('DOMContentLoaded', () => {
+      const titleEl = document.getElementById('chatHeaderTitle');
+      titleEl.addEventListener('click', () => {
+        state.chatMode = 'group';
+        state.currentTarget = null;
+        updateUsersList();
+        updateChatHeader();
+      });
+    });
+
+    // =================== SEND MESSAGE =================
+    function sendMessage() {
+      const text = messageInput.value.trim();
+      if (!text || !state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        return;
+      }
+
+      if (!isGroupView() && !isPrivateView()) {
+        alert('Pilih Room Chat Umum atau user terlebih dahulu.');
+        return;
+      }
+
+      const payload = {
+        type: 'message',
+        text: text,
+        recipientId: 'all'
+      };
+      if (isPrivateView()) {
+        payload.recipientId = state.currentTarget;
+      }
+      state.ws.send(JSON.stringify(payload));
+
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+    }
+
+    function persistUserToStorage() {
+      localStorage.setItem('chatUser', JSON.stringify({
+        username: state.username,
+        profilePic: state.profilePic || null
+      }));
+    }
+
+    function sendProfileUpdate({ username, profilePic }) {
+      if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+        alert('Koneksi server belum siap. Coba lagi beberapa detik.');
+        return;
+      }
+
+      const payload = {
+        type: 'updateProfile',
+        username: username || state.username,
+        profilePic: typeof profilePic === 'undefined' ? state.profilePic : profilePic
+      };
+
+      state.ws.send(JSON.stringify(payload));
+    }
+
+    function openChangeNameDialog() {
+      const inputName = prompt('Masukkan nama baru:', state.username || '');
+      if (inputName === null) return;
+
+      const newName = inputName.trim();
+      if (!newName) {
+        alert('Nama tidak boleh kosong');
+        return;
+      }
+      sendProfileUpdate({ username: newName });
+    }
+
+    function openChangePhotoPicker() {
+      editProfilePicInput.dataset.pendingName = state.username;
+      editProfilePicInput.click();
+    }
+
+    function doLogout() {
+      leaveGroupVoice(false);
+      if (state.ws) {
+        state.ws.close();
+      }
+      state.chatMode = 'none';
+      state.currentTarget = null;
+      localStorage.removeItem('chatUser');
+      loginScreen.style.display = 'flex';
+      chatScreen.classList.remove('active');
+      settingsModal.classList.remove('active');
+      loginForm.reset();
+      usernameInput.focus();
+    }
+
+    // =================== VOICE MESSAGE =================
+    let activeVoiceRecipient = null;
+    let activeVoiceButton = null;
+
+    function resetVoiceButtons() {
+      recordBtn.textContent = '🎤';
+    }
+
+    async function toggleVoiceRecording({ recipientId, buttonEl }) {
+      if (typeof MediaRecorder === 'undefined') {
+        alert('Browser kamu belum mendukung perekaman suara (MediaRecorder). Coba gunakan Chrome / Edge / Firefox.');
+        return;
+      }
+
+      // klik tombol yang sama saat rekam => stop & kirim
+      if (mediaRecorder && activeVoiceButton === buttonEl) {
+        try {
+          mediaRecorder.stop();
+        } catch (err) {
+          console.error('Error saat menghentikan rekaman:', err);
+        }
+        mediaRecorder = null;
+        activeVoiceRecipient = null;
+        activeVoiceButton = null;
+        resetVoiceButtons();
+        return;
+      }
+
+      // sedang rekam dari tombol lain
+      if (mediaRecorder && activeVoiceButton !== buttonEl) {
+        alert('Sedang merekam audio. Stop dulu rekaman yang sedang berjalan.');
+        return;
+      }
+
+      try {
+        if (!localStream) {
+          localStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        }
+      } catch (err) {
+        console.error('Gagal akses mikrofon untuk voice message:', err);
+        alert('Tidak bisa akses mikrofon: ' + (err.message || err.name));
+        return;
+      }
+
+      recordedChunks = [];
+
+      try {
+        let options = {};
+        if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+          options.mimeType = 'audio/webm;codecs=opus';
+        }
+        mediaRecorder = new MediaRecorder(localStream, options);
+      } catch (err) {
+        console.error('Gagal membuat MediaRecorder:', err);
+        alert('Perekaman suara tidak didukung di perangkat / browser ini.');
+        return;
+      }
+
+      activeVoiceRecipient = recipientId;
+      activeVoiceButton = buttonEl;
+
+      mediaRecorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const sendRecipient = activeVoiceRecipient || 'all';
+        try {
+          if (!recordedChunks.length) {
+            console.warn('Tidak ada data audio yang terekam');
+            return;
+          }
+          const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            if (!state.ws || state.ws.readyState !== WebSocket.OPEN) {
+              alert('Koneksi ke server terputus, tidak bisa mengirim voice.');
+              return;
+            }
+            const payload = {
+              type: 'voice',
+              voiceData: dataUrl,
+              recipientId: sendRecipient
+            };
+            state.ws.send(JSON.stringify(payload));
+          };
+          reader.readAsDataURL(blob);
+        } catch (err) {
+          console.error('Error saat memproses voice message:', err);
+        } finally {
+          activeVoiceRecipient = null;
+          activeVoiceButton = null;
+          resetVoiceButtons();
+          releaseMicIfIdle();
+        }
+      };
+
+      mediaRecorder.start();
+      resetVoiceButtons();
+      buttonEl.textContent = '⏹️';
+    }
+
+    recordBtn.addEventListener('click', async () => {
+      if (!isGroupView() && !isPrivateView()) {
+        alert('Pilih Room Chat Umum atau user terlebih dahulu.');
+        return;
+      }
+      const recipientId = isPrivateView() ? state.currentTarget : 'all';
+      await toggleVoiceRecording({ recipientId, buttonEl: recordBtn });
+    });
+
+    // =================== LOGIN =================
+    // attempt auto-login from localStorage
+    const stored = localStorage.getItem('chatUser');
+    if (stored) {
+      try {
+        const u = JSON.parse(stored);
+        state.username = u.username;
+        state.profilePic = u.profilePic || null;
+        state.userId = generateUserId();
+        finishLogin();
+      } catch (_) {}
+    }
+
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = usernameInput.value.trim();
+      if (!username) return;
+
+      const fileInputEl = document.getElementById('profilePic');
+      const file = fileInputEl.files[0];
+
+      state.userId = generateUserId();
+      state.username = username;
+
+      // read profile pic if provided
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          state.profilePic = ev.target.result;
+          finishLogin();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        finishLogin();
+      }
+    });
+
+    function finishLogin() {
+      if (!state.userId) {
+        state.userId = generateUserId();
+      }
+
+      state.chatMode = 'group';
+      state.currentTarget = null;
+
+      // persist user
+      persistUserToStorage();
+
+      // Switch screens
+      loginScreen.style.display = 'none';
+      chatScreen.classList.add('active');
+      console.log('[finishLogin] Chat screen activated, usersList element:', usersList);
+
+      // Connect WebSocket now we have profilePic
+      connectWebSocket();
+
+      updateChatHeader();
+      renderStatuses();
+      renderReels();
+      setSocialTab('status');
+      setMainView('chat');
+
+      // Focus message input
+      messageInput.focus();
+
+      requestNotificationPermission();
+    }
+
+    // =================== EVENT LISTENERS =================
+    settingsBtn.addEventListener('click', () => {
+      settingsModal.classList.add('active');
+    });
+
+    closeSettingsBtn.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+    });
+
+    changeNameBtn.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+      openChangeNameDialog();
+    });
+
+    changePhotoBtn.addEventListener('click', () => {
+      settingsModal.classList.remove('active');
+      openChangePhotoPicker();
+    });
+
+    logoutFromSettingsBtn.addEventListener('click', doLogout);
+
+    editProfilePicInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      const pendingName = editProfilePicInput.dataset.pendingName || state.username;
+
+      if (!file) {
+        sendProfileUpdate({ username: pendingName });
+        editProfilePicInput.value = '';
+        delete editProfilePicInput.dataset.pendingName;
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        sendProfileUpdate({
+          username: pendingName,
+          profilePic: ev.target.result
+        });
+        editProfilePicInput.value = '';
+        delete editProfilePicInput.dataset.pendingName;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatViewBtn.addEventListener('click', () => setMainView('chat'));
+    socialViewBtn.addEventListener('click', () => setMainView('social'));
+    statusTabBtn.addEventListener('click', () => setSocialTab('status'));
+    reelsTabBtn.addEventListener('click', () => setSocialTab('reels'));
+    postStatusBtn.addEventListener('click', postStatus);
+    postReelBtn.addEventListener('click', postReel);
+
+    statusInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        postStatus();
+      }
+    });
+
+    statusList.addEventListener('click', (e) => {
+      const btn = e.target.closest('.status-delete-btn');
+      if (!btn) return;
+      const statusId = btn.getAttribute('data-status-id');
+      deleteStatus(statusId);
+    });
+
+    reelsList.addEventListener('click', (e) => {
+      const deleteBtn = e.target.closest('.reel-delete-btn');
+      if (deleteBtn) {
+        const reelId = deleteBtn.getAttribute('data-reel-id');
+        deleteReel(reelId);
+        return;
+      }
+      const videoEl = e.target.closest('.reel-video');
+      if (!videoEl) return;
+      openReelFullscreen(videoEl.currentSrc || videoEl.src);
+    });
+
+    closeReelFullscreenBtn.addEventListener('click', closeReelFullscreen);
+    reelFullscreenModal.addEventListener('click', (e) => {
+      if (e.target === reelFullscreenModal) {
+        closeReelFullscreen();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && reelFullscreenModal.classList.contains('active')) {
+        closeReelFullscreen();
+      }
+    });
+
+    messageInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Auto-resize textarea
+    messageInput.addEventListener('input', (e) => {
+      e.target.style.height = 'auto';
+      e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+    });
+
+    // Emoji button
+    emojiBtn.addEventListener('click', () => {
+      emojiPicker.classList.toggle('active');
+    });
+
+    // Populate emoji picker
+    emojis.forEach(emoji => {
+      const btn = document.createElement('button');
+      btn.className = 'emoji-item';
+      btn.textContent = emoji;
+      btn.type = 'button';
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        messageInput.value += emoji;
+        messageInput.focus();
+      });
+      emojiPicker.appendChild(btn);
+    });
+
+    // File button
+    fileBtn.addEventListener('click', () => {
+      fileInput.click();
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        // If websocket ready, send file as dataURL
+        if (state.ws && state.ws.readyState === WebSocket.OPEN) {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (!isGroupView() && !isPrivateView()) {
+              alert('Pilih Room Chat Umum atau user terlebih dahulu.');
+              return;
+            }
+            const dataUrl = event.target.result;
+            state.ws.send(JSON.stringify({
+              type: 'file',
+              filename: file.name,
+              fileData: dataUrl,
+              recipientId: isPrivateView() ? state.currentTarget : 'all'
+            }));
+          };
+          reader.readAsDataURL(file);
+        } else {
+          messageInput.value += `[File: ${file.name}]`;
+        }
+        fileInput.value = '';
+      }
+    });
+
+    settingsModal.addEventListener('click', (e) => {
+      if (e.target === settingsModal) {
+        settingsModal.classList.remove('active');
+      }
+    });
+
+    // Close emoji picker when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('#emojiBtn') && !e.target.closest('#emojiPicker')) {
+        emojiPicker.classList.remove('active');
+      }
+    });
+
+    // Focus username input on load
+    usernameInput.focus();
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        resetUnreadNotifications();
+      }
+    });
+
+    window.addEventListener('focus', () => {
+      resetUnreadNotifications();
+      resumeRemoteAudioPlayback();
+      renderStatuses();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        resumeRemoteAudioPlayback();
+      }
+    });
+  </script>
+</body>
+</html>
