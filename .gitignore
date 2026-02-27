@@ -11,6 +11,9 @@ yarn-error.log*
 .env
 backend/.env
 
+# Runtime temp
+.runtime/
+
 # OS / editor
 .DS_Store
 .vscode/
